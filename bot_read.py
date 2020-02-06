@@ -23,7 +23,7 @@ def split_by_type(wiki_set, wiki_words, lower_wiki_words, char_list, series_list
 def make_char_text(char_list):
     temp_str = ""
     for i in range(0, len(char_list), 2):
-        if i is 0:
+        if i == 0:
             temp_str = "[" + char_list[i] + "]" + "(" + char_list[i + 1] + ")"
         else:
             temp_str = temp_str + ", " + "[" + char_list[i] + "]" + "(" + char_list[i + 1] + ")"
@@ -40,7 +40,7 @@ def find_series_char(series_list, wiki_words):
             # add entry and link to list
             series_char_list.append(wiki_words[i - 1])
             series_char_list.append(wiki_words[i + 1])
-        if i is 0:
+        if i == 0:
             temp_str = ("Characters from " + x + ": " 
             + make_char_text(series_char_list) + "\n")
         else:
@@ -79,37 +79,36 @@ for submission in subreddit.new(limit=5):
         # regex to isolate phrases from wiki and title
         wiki_words = re.split(r'[\t\n\r\|]+', wikipage.content_md)
         # isolate words in square brackets
-        m = re.search(r"\[([A-Za-z0-9_]+)\]", submission.title)
-        title_mod = m.group(1)
-        title_words = title_mod.split(", ")
-        #title_words = [i.split(',')[0] for i in title_mod] 
-        #set to lowercase to allow case-insensitive matching
-        lower_wiki_words = [item.lower() for item in wiki_words]
-        title_words = [item.lower() for item in title_words]
-        # check if name is in wiki
-        wiki_set = set(title_words).intersection(lower_wiki_words)
-        print(title_mod) # debug use only
+        match = re.search(r"\[([A-Za-z0-9_]+)\]", submission.title)
+        if match:
+            title_mod = match.group(1)
+            title_words = title_mod.split(", ")
+            #title_words = [i.split(',')[0] for i in title_mod] 
+            #set to lowercase to allow case-insensitive matching
+            lower_wiki_words = [item.lower() for item in wiki_words]
+            title_words = [item.lower() for item in title_words]
+            # check if name is in wiki
+            wiki_set = set(title_words).intersection(lower_wiki_words)
+            #print(title_mod) # debug use only
 
-        if not wiki_set:
-            print("No character names found in title: ", submission.title)
-        else:
-            char_list = []
-            series_list = []
-            full_comment = ""
+            if not wiki_set:
+                print("No character names found in title: ", submission.title)
+            else:
+                char_list = []
+                series_list = []
+                full_comment = ""
 
-            # sort and fill lists
-            split_by_type(wiki_set, wiki_words, lower_wiki_words, char_list, series_list)
-            if char_list:
-                full_comment = "Characters: " + make_char_text(char_list) + "\n"
-            
-            # recognizes single-word series in title, may add later
-            #if series_list:
-                # find characters and create links
-                #full_comment = full_comment + find_series_char(series_list, wiki_words)
-            
-            # print(full_comment)
-            # submission.reply(full_comment)
-            # posts_replied_to.append(submission.id)
+                # sort and fill lists
+                split_by_type(wiki_set, wiki_words, lower_wiki_words, char_list, series_list)
+                if char_list:
+                    full_comment = "Characters: " + make_char_text(char_list) + "\n"
+                
+                if series_list:
+                    full_comment = full_comment + find_series_char(series_list, wiki_words)
+                
+                #print(full_comment)
+                # submission.reply(full_comment)
+                # posts_replied_to.append(submission.id)
         
         with open("posts_replied_to.txt", "w") as f:
             for post_id in posts_replied_to:
@@ -126,12 +125,12 @@ for sub in subreddit.new(limit=100):
             char_list = []
             series_list = []
             full_comment = ""
-            text = c.body.split()
+            text = c.body.split(',')
             text = [item.lower() for item in text]
-            text[0:1] = [''.join(text[0:1])]
-            #for x in text:
-                #print(x)
-            if text[0] is "bot call":
+            #text[1:2] = [''.join(text[1:2])]
+            for x in text: 
+                print(x)
+            if text[0] == "bot call":
                 text_set = set(text).intersection(lower_wiki_words)
                 split_by_type(text_set, wiki_words, lower_wiki_words, char_list, series_list)
                 if char_list:
