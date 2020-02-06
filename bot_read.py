@@ -78,14 +78,17 @@ for submission in subreddit.new(limit=5):
     if submission.id not in posts_replied_to:
         # regex to isolate phrases from wiki and title
         wiki_words = re.split(r'[\t\n\r\|]+', wikipage.content_md)
-        title_mod = re.sub('[^A-Za-z0-9]+', ' ', submission.title)
-        title_words = title_mod.split()
+        # isolate words in square brackets
+        m = re.search(r"\[([A-Za-z0-9_]+)\]", submission.title)
+        title_mod = m.group(1)
+        title_words = title_mod.split(", ")
+        #title_words = [i.split(',')[0] for i in title_mod] 
         #set to lowercase to allow case-insensitive matching
         lower_wiki_words = [item.lower() for item in wiki_words]
         title_words = [item.lower() for item in title_words]
         # check if name is in wiki
         wiki_set = set(title_words).intersection(lower_wiki_words)
-        #print(title_words) # debug use only
+        print(title_mod) # debug use only
 
         if not wiki_set:
             print("No character names found in title: ", submission.title)
@@ -126,8 +129,8 @@ for sub in subreddit.new(limit=100):
             text = c.body.split()
             text = [item.lower() for item in text]
             text[0:1] = [''.join(text[0:1])]
-            for x in text:
-                print(x)
+            #for x in text:
+                #print(x)
             if text[0] is "bot call":
                 text_set = set(text).intersection(lower_wiki_words)
                 split_by_type(text_set, wiki_words, lower_wiki_words, char_list, series_list)
