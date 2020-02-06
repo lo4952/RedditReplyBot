@@ -61,8 +61,8 @@ if not os.path.isfile("posts_replied_to.txt"):
 else :
     with open("posts_replied_to.txt", "r") as f:
         posts_replied_to = f.read()
-        posts_replied_to = posts_replied_to.split("\n") # list post id's on seperate lines
-        posts_replied_to = list(filter(None, posts_replied_to)) # eliminate empty values
+        posts_replied_to = posts_replied_to.split("\n")
+        posts_replied_to = list(filter(None, posts_replied_to))
 
 # if the file to track comments doesn't exist, create it
 if not os.path.isfile("comments_replied_to.txt"):
@@ -70,8 +70,8 @@ if not os.path.isfile("comments_replied_to.txt"):
 else :
     with open("comments_replied_to.txt", "r") as f:
         comments_replied_to = f.read()
-        comments_replied_to = comments_replied_to.split("\n") # list post id's on seperate lines
-        comments_replied_to = list(filter(None, comments_replied_to)) # eliminate empty values
+        comments_replied_to = comments_replied_to.split("\n")
+        comments_replied_to = list(filter(None, comments_replied_to))
     
 # check last 5 posts in hot for keywords in the title
 for submission in subreddit.new(limit=5):
@@ -106,9 +106,8 @@ for submission in subreddit.new(limit=5):
                 if series_list:
                     full_comment = full_comment + find_series_char(series_list, wiki_words)
                 
-                #print(full_comment)
-                # submission.reply(full_comment)
-                # posts_replied_to.append(submission.id)
+                submission.reply(full_comment)
+                posts_replied_to.append(submission.id)
         
         with open("posts_replied_to.txt", "w") as f:
             for post_id in posts_replied_to:
@@ -120,26 +119,24 @@ for sub in subreddit.new(limit=100):
         if c.id not in comments_replied_to:
             wiki_words = re.split(r'[\t\n\r\|]+', wikipage.content_md)
             lower_wiki_words = [item.lower() for item in wiki_words]
-
+            text = c.body
+            text = text.lower()
             # required format: BOT CALL NAME1, NAME2, NAME3, ...
             char_list = []
             series_list = []
             full_comment = ""
-            text = c.body.split(',')
-            text = [item.lower() for item in text]
-            #text[1:2] = [''.join(text[1:2])]
-            for x in text: 
-                print(x)
-            if text[0] == "bot call":
+            if text.startswith("bot call"):
+                # remove bot call from list of phrases to search
+                text = text.split(' ', 2)[2]
+                text = text.split(', ')
                 text_set = set(text).intersection(lower_wiki_words)
                 split_by_type(text_set, wiki_words, lower_wiki_words, char_list, series_list)
                 if char_list:
                     full_comment = "Characters: " + make_char_text(char_list) + "\n"
                 if series_list:
                     full_comment = full_comment + find_series_char(series_list, wiki_words)
-                print(full_comment)
-                #c.reply(full_comment)
-                #comments_replied_to.append(c.id)
+                c.reply(full_comment)
+                comments_replied_to.append(c.id)
 
             with open("comments_replied_to.txt", "w") as f:
                 for c_id in comments_replied_to:
